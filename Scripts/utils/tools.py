@@ -6,7 +6,9 @@ from selenium import webdriver
 import time
 from openai import OpenAI
 import openai
-
+import requests
+import re
+from bs4 import BeautifulSoup as bs
 
 def make_dir(root_path, name):
     # Ensure the root path exists
@@ -31,3 +33,18 @@ def gpt_power():
     )
 
     print(completion.choices[0].message)
+
+def fromDOItoAbstract(doi):
+    url = f"https://api.crossref.org/works/{doi}"
+    response = requests.get(url)
+    data = response.json()
+    xml_abstract = data.get('message', 'None').get('abstract', 'None')
+
+    soup = bs(xml_abstract, 'lxml')
+
+    abstract_text = soup.find_all('jats:p')
+
+    abstract_combined = ' '.join([tag.get_text() for tag in abstract_text])
+
+    clean_abstract = re.sub(r'\s+', ' ', abstract_combined).strip()
+    return clean_abstract

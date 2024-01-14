@@ -13,6 +13,7 @@ from selenium.webdriver.common.by import By
 from urllib.parse import urlparse
 from bs4 import NavigableString
 import re
+from Scripts.utils import tools
 
 root_path = '../../ParallelCorpus'
 name = 'ScienceNet.CN'
@@ -21,7 +22,7 @@ folder_name = os.path.join(root_path, name)
 tools.make_dir(root_path, name)
 
 topics = {
-    # 'Medical': '1',
+    'Medical': '1',
     'Life': '2',
     'Geo': '3',
     'Chemical': '4',
@@ -32,10 +33,10 @@ topics = {
 
 # for test
 # topics = {'Medical': '1',}
+# hrefs = ['https://paper.sciencenet.cn/htmlpaper/2024/1/20241416262834392841.shtm']
 
 # create files to store hrefs
 for topic, id in topics.items():
-
     main_page = f'https://paper.sciencenet.cn/paper/fieldlist.aspx?id={id}'
     hrefs = []
     source_domain = {}
@@ -83,18 +84,19 @@ for topic, id in topics.items():
             f.write(href + '\n')
 
 #     print('Load hrefs done')
-
+#
 
     # checking the domain of the source web page for each href in hrefs and write to csv
     # picking 2-3 most popular domain to write scirpt ad hoc
+    doi = ''
     for index, urls in enumerate(hrefs):
         try:
-            print(f'Processing {index}th article with the topic {topic} in total {len(hrefs)} articles')
             hdr = {'User-Agent': 'Mozilla/5.0'}
             r = requests.get(urls, headers=hdr)
             source = r.content
             soup = bs(source, 'lxml')
-            p_tag = soup.find_all('p')
+            div_tag = soup.find('div', id='content1')
+            p_tag = div_tag.find_all('p')
             text = ''
             reference = ''
 
@@ -103,48 +105,26 @@ for topic, id in topics.items():
                     for child in p.children:
                         if isinstance(child, NavigableString) and child != '\n':
                             text += child
+
                 if index == len(p_tag) - 1:
                     reference = p.find('a', href=True, target='_blank')['href']
+                    doi = reference.split('/')[-2] + '/' + reference.split('/')[-1]
 
+
+            # PLS summaries
             text = re.sub(r'（来源：[^）]+）', '', text)
-            # may don't have the reference
-            # if exception, don't extract pls_summaries
+                # may don't have the reference
+                # if exception, don't extract pls_summaries
         except:
             continue
 
         # if reference and text exist
+
         if (reference != '' and text != ''):
-            # for estimate the source web domain
-            response = requests.get(reference ,headers = hdr)
-            if response.status_code == 200:
-                parsed_url = urlparse(response.url)
-                first_level = parsed_url.netloc
-                # only extract the abstract from nature
-                # if 'nature' in first_level:
-                #     source = response.content
-                #     soup = bs(source, 'lxml')
-                #     scientific_abstract = soup.find('div', class_='c-article-section__content').get_text()
+            # scientific abstract
+            clean_abstract = tools.fromDOItoAbstract(doi)
+            # check if clean_abstract is empty
+            if clean_abstract != '':
+                pass
 
-        # TODO: After makeing sure the reference exits,
-        #  write the summaries in one file with the unique id as PLS corpus
-        #  after extract the abstract from the reference web page:
-        #  write the abstract in other file with the same id as Scientific Corpus
-        #  Another thing is to check how relevant these two texts are, make set a thresh hold to filter out the irrelevant ones
-
-    #
-                if first_level in source_domain:
-                    count = source_domain[first_level]
-                    source_domain[first_level] = count + 1
-                else:
-                    source_domain[first_level] = 1
-            else:
-                continue
-    print('Writing Source Domain')
-    # after one topic loop
-    domain_csv = os.path.join(folder_name, f'source_{topic}_web.csv')
-    with open(domain_csv, 'w', newline='') as file:
-        writer = csv.writer(file)
-        writer.writerow(['Web', 'Count'])
-        for key, count in source_domain.items():
-            writer.writerow([key, count])
     driver.close()

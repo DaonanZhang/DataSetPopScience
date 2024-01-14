@@ -14,23 +14,25 @@ from urllib.parse import urlparse
 from selenium.webdriver.support import expected_conditions as EC
 
 
+
 root_path = '../../ParallelCorpus'
 name = 'Wissenschaft_DE'
 
 folder_name = os.path.join(root_path, name)
 tools.make_dir(root_path, name)
 
-# topics = [
-#     'astronomie-physik',
-#     'technik-digitales',
-#     'gesundheit-medizin',
-#     'erde-umwelt',
-#     'geschichte-archaeologie',
-#     'gesellschaft-psychologie'
-# ]
+topics = [
+    'astronomie-physik',
+    'technik-digitales',
+    'gesundheit-medizin',
+    'erde-umwelt',
+    'geschichte-archaeologie',
+    'gesellschaft-psychologie'
+]
 
 # for test
-topics = ['astronomie-physik']
+# topics = ['astronomie-physik']
+# hrefs = ['https://www.wissenschaft.de/gesundheit-medizin/tumore-machen-fettzellen-zu-komplizen/']
 
 # create files to store hrefs
 for topic in topics:
@@ -96,10 +98,6 @@ for topic in topics:
             f.write(href + '\n')
     print('Load hrefs done')
 
-
-    # # debug
-    # hrefs = ['https://www.wissenschaft.de/gesundheit-medizin/tumore-machen-fettzellen-zu-komplizen/']
-
     # empty by default
     reference = ''
 
@@ -107,16 +105,12 @@ for topic in topics:
     # picking 2-3 most popular domain to write scirpt ad hoc
     for index, urls in enumerate(hrefs):
         try:
-            print(f'Processing {index}th article with the topic {topic} in total {len(hrefs)} articles')
             hdr = {'User-Agent': 'Mozilla/5.0'}
             r = requests.get(urls, headers=hdr)
             source = r.content
             soup = bs(source, 'lxml')
-
             p_tags = soup.find('div', class_='col-lg-12 col-md-12 col-sm-12').find_all('p')
-
             pls_summaries = p_tags[0].get_text(strip=True)
-
             # may don't have the reference
             # if exception, don't extract pls_summaries
             reference = p_tags[-2].find('a')['href']
@@ -124,44 +118,14 @@ for topic in topics:
         except:
             continue
 
-        print(pls_summaries)
-        print(reference)
+        doi = reference.split('/')[-2] + '/' + reference.split('/')[-1]
+        abstract = tools.fromDOItoAbstract(doi)
 
-
+        # print(pls_summaries)
+        # print(reference)
+        # print(abstract)
         # if reference exist
         if (reference != ''):
-            # for estimate the source web domain
-            response = requests.get(reference ,headers = hdr)
-            if response.status_code == 200:
-                parsed_url = urlparse(response.url)
-                first_level = parsed_url.netloc
-                # only extract the abstract from nature
-                # if 'nature' in first_level:
-                #     source = response.content
-                #     soup = bs(source, 'lxml')
-                #     scientific_abstract = soup.find('div', class_='c-article-section__content').get_text()
-    #
-    #     # TODO: After makeing sure the reference exits,
-    #     #  write the summaries in one file with the unique id as PLS corpus
-    #     #  after extract the abstract from the reference web page:
-    #     #  write the abstract in other file with the same id as Scientific Corpus
-    #     #  Another thing is to check how relevant these two texts are, make set a thresh hold to filter out the irrelevant ones
-    #
-    # #
-                if first_level in source_domain:
-                    count = source_domain[first_level]
-                    source_domain[first_level] = count + 1
-                else:
-                    source_domain[first_level] = 1
-            else:
-                continue
-    print('Writing Source Domain')
-    # after one topic loop
-    domain_csv = os.path.join(folder_name, f'source_{topic}_web.csv')
-    with open(domain_csv, 'w', newline='') as file:
-        writer = csv.writer(file)
-        writer.writerow(['Web', 'Count'])
-        for key, count in source_domain.items():
-            writer.writerow([key, count])
+            pass
 
     driver.close()
