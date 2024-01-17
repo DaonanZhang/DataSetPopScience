@@ -105,6 +105,9 @@ for topic in topics:
             # may don't have the reference
             # if exception, don't extract pls_summaries
             pls_summaries = soup.find('dd', id='abstract').get_text()
+            story_text_tag = soup.find('div', id='story_text')
+            story_text = story_text_tag.get_text() if story_text_tag else ''
+            pls_summaries = f"{pls_summaries}\n{story_text}"    
             a_tag = soup.find('ol', class_='journal').find_all('a')
             if len(a_tag) == 1:
                 reference += a_tag[0].get_text()

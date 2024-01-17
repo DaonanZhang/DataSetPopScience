@@ -111,6 +111,7 @@ for topic in topics:
             soup = bs(source, 'lxml')
             p_tags = soup.find('div', class_='col-lg-12 col-md-12 col-sm-12').find_all('p')
             pls_summaries = p_tags[0].get_text(strip=True)
+            pls_summaries = '\n'.join([p.get_text(strip=True) for p in p_tags])
             # may don't have the reference
             # if exception, don't extract pls_summaries
             reference = p_tags[-2].find('a')['href']
