@@ -25,73 +25,73 @@ FASTTEXT_MODEL_PATH = 'F:\\Fasttext_models\\'
 
 
 folder_name = os.path.join(root_path, name)
+href_folder = os.path.join(folder_name, 'href')
 tools.make_dir(root_path, name)
 
 
-# topics = {
-#     'Medical': '1',
-#     'Life': '2',
-#     'Geo': '3',
-#     'Chemical': '4',
-#     'Indutry': '5',
-#     'Information': '6',
-#     'Mathematics': '7',
-# }
+topics = {
+    'Medical': '1',
+    'Life': '2',
+    'Geo': '3',
+    'Chemical': '4',
+    'Indutry': '5',
+    'Information': '6',
+    'Mathematics': '7',
+}
 
 # for test
-topics = {'Medical': '1',}
-hrefs = ['https://paper.sciencenet.cn/htmlpaper/2024/1/20241416262834392841.shtm']
+# topics = {'Medical': '1',}
+# hrefs = ['https://paper.sciencenet.cn/htmlpaper/2024/1/20241416262834392841.shtm']
 
 # create files to store hrefs
 for topic, id in topics.items():
-    # main_page = f'https://paper.sciencenet.cn/paper/fieldlist.aspx?id={id}'
-    # hrefs = []
-    # source_domain = {}
-    #
-    # csv_file_path = os.path.join(root_path, name, name + f'{topic}.csv')
-    # href_csv = folder_name + f'/hrefs_{topic}.csv'
-    # if not os.path.exists(href_csv):
-    #     with open(href_csv, 'w') as csv_file:
-    #         pass
-    # else:
-    #     with open(folder_name + f'/hrefs_{topic}.csv', 'r') as f:
-    #         hrefs = f.read().splitlines()
-    #
-    # options = webdriver.ChromeOptions()
-    # options.binary_location = r"C:\Program Files\Google\Chrome\Application\chrome.exe"
-    # driver = webdriver.Chrome()
-    # driver.get(main_page)
-    #
-    # # for load more articles / to get hrefs
-    # total_pages = 1
-    # for page_number in range(0, total_pages):
-    #     soup = bs(driver.page_source, 'lxml')
-    #     tr_tags = soup.find_all('tr')
-    #     for tr in tr_tags:
-    #         a_tag = tr.find('a')
-    #         if a_tag and 'href' in a_tag.attrs and 'fieldlist' not in a_tag['href']:
-    #             href = 'https://paper.sciencenet.cn' + a_tag['href']
-    #             if href not in hrefs:
-    #                 hrefs.append(href)
-    #
-    #     # go to the next page
-    #     # roll down to the bottom
-    #     if page_number + 1 != total_pages:
-    #         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-    #         input_element = driver.find_element(By.NAME, 'AspNetPager1_input')
-    #         input_element.clear()
-    #         input_element.send_keys(f'{page_number}')
-    #         submit_button = driver.find_element(By.NAME, 'AspNetPager1')
-    #         submit_button.click()
-    #         time.sleep(4)
-    #
-    #
-    # with open(folder_name + f'/hrefs_{topic}.csv', 'w') as f:
-    #     for href in hrefs:
-    #         f.write(href + '\n')
+    main_page = f'https://paper.sciencenet.cn/paper/fieldlist.aspx?id={id}'
+    hrefs = []
 
-#     print('Load hrefs done')
-#
+    href_csv = href_folder + f'/hrefs_{topic}.csv'
+
+    if not os.path.exists(href_csv):
+        with open(href_csv, 'w') as csv_file:
+            pass
+    else:
+        with open(href_csv, 'r') as f:
+            hrefs = f.read().splitlines()
+
+    options = webdriver.ChromeOptions()
+    options.binary_location = r"C:\Program Files\Google\Chrome\Application\chrome.exe"
+    driver = webdriver.Chrome()
+    driver.get(main_page)
+
+    # for load more articles / to get hrefs
+    total_pages = 20
+    for page_number in range(1, total_pages):
+        soup = bs(driver.page_source, 'lxml')
+        tr_tags = soup.find_all('tr')
+        for tr in tr_tags:
+            a_tag = tr.find('a')
+            if a_tag and 'href' in a_tag.attrs and 'fieldlist' not in a_tag['href']:
+                href = 'https://paper.sciencenet.cn' + a_tag['href']
+                if href not in hrefs:
+                    hrefs.append(href)
+
+        # go to the next page
+        # roll down to the bottom
+        if page_number + 1 != total_pages:
+            driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+            input_element = driver.find_element(By.NAME, 'AspNetPager1_input')
+            input_element.clear()
+            input_element.send_keys(f'{page_number}')
+            submit_button = driver.find_element(By.NAME, 'AspNetPager1')
+            submit_button.click()
+            time.sleep(4)
+
+
+    with open(href_csv, 'w') as f:
+        for href in hrefs:
+            f.write(href + '\n')
+
+    print('Load hrefs done')
+
 
     # checking the domain of the source web page for each href in hrefs and write to csv
     # picking 2-3 most popular domain to write scirpt ad hoc
@@ -104,14 +104,14 @@ for topic, id in topics.items():
             soup = bs(source, 'lxml')
             div_tag = soup.find('div', id='content1')
             p_tag = div_tag.find_all('p')
-            text = ''
+            pls_summaries = ''
             reference = ''
 
             for index, p in enumerate(p_tag):
                 if index != 0 and index != len(p_tag) - 1:
                     for child in p.children:
                         if isinstance(child, NavigableString) and child != '\n':
-                            text += child
+                            pls_summaries += child
 
                 if index == len(p_tag) - 1:
                     reference = p.find('a', href=True, target='_blank')['href']
@@ -119,21 +119,17 @@ for topic, id in topics.items():
 
 
             # PLS summaries
-            text = re.sub(r'（来源：[^）]+）', '', text)
+            pls_summaries = re.sub(r'（来源：[^）]+）', '', pls_summaries)
                 # may don't have the reference
                 # if exception, don't extract pls_summaries
         except:
             continue
 
-        print(text)
-        print(reference)
-
         # if reference and text exist
-        if (reference != '' and text != ''):
-            # scientific abstract
-            clean_abstract = tools.fromDOItoAbstract(doi)
+        if (reference != '' and pls_summaries != ''):
+            clean_abstract = tools.fromDOItoAbstract(reference)
             # check if clean_abstract is empty
             if clean_abstract != '':
-                pass
+                tools.saveFile(topic, pls_summaries, reference, root_path, name, clean_abstract)
 
-    # driver.close()
+    driver.close()

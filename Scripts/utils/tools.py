@@ -112,12 +112,33 @@ def natureAPI(doi, root_path, name):
                 print(index)
                 file.write(chunk)
 
-from pdfminer.high_level import extract_text
-def pdfMiner(pdf_path):
-    text = extract_text(pdf_path)
-    return text
+import csv
 
-# test
-# natureAPI('10.1038/s41586-023-06794-y')
-# text = pdfMiner('F:\\DataSetPopScience\\Scripts\\utils\\10.1038_s41586-023-06794-y.pdf')
-# print(text)
+def saveFile(topic, pls, reference, root_path, name, abstract):
+
+    try:
+        fk_score, ari_score = fk_ari_score(pls)
+    except:
+        fk_score = 'None'
+        ari_score = 'None'
+
+    column_names = ['pls',  'fk_score', 'ari_score', 'reference', 'abstract']
+    row = {'pls': pls, 'fk_score': fk_score, 'ari_score': ari_score, 'reference': reference, 'abstract': abstract}
+
+    name = os.path.join(name, 'store')
+    make_dir(root_path, name)
+
+    pls_path = os.path.join(root_path, name, f'{topic}_pls.csv')
+    pls_extist = os.path.exists(pls_path)
+
+    if pls_extist:
+        pls_mode = 'a'
+    else:
+        pls_mode = 'w'
+
+    with open(pls_path, pls_mode, newline='', encoding='utf-8') as f:
+        writer = csv.DictWriter(f, fieldnames=column_names)
+        if pls_mode == 'w':
+            writer.writeheader()
+        writer.writerow(row)
+        print('done')

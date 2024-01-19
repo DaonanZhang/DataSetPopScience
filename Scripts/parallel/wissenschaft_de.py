@@ -19,8 +19,9 @@ root_path = '../../ParallelCorpus'
 name = 'Wissenschaft_DE'
 
 folder_name = os.path.join(root_path, name)
+href_folder = os.path.join(folder_name, 'href')
 tools.make_dir(root_path, name)
-
+#
 topics = [
     'astronomie-physik',
     'technik-digitales',
@@ -37,15 +38,13 @@ topics = [
 # create files to store hrefs
 for topic in topics:
     hrefs = []
-    source_domain = {}
-    csv_file_path = os.path.join(root_path, name, name + f'{topic}.csv')
 
-    href_csv = folder_name + f'/hrefs_{topic}.csv'
+    href_csv = href_folder + f'/hrefs_{topic}.csv'
     if not os.path.exists(href_csv):
         with open(href_csv, 'w') as csv_file:
             pass
     else:
-        with open(folder_name + f'/hrefs_{topic}.csv', 'r') as f:
+        with open(href_csv, 'r') as f:
             hrefs = f.read().splitlines()
 
     # for load more articles
@@ -70,7 +69,7 @@ for topic in topics:
     driver.maximize_window()
 
     # load how many times more
-    max_retries = 4
+    max_retries = 10
     current_try = 0
     while current_try < max_retries:
         try:
@@ -93,7 +92,7 @@ for topic in topics:
         if href not in hrefs:
             hrefs.append(href)
 
-    with open(folder_name + f'/hrefs_{topic}.csv', 'w') as f:
+    with open(href_csv, 'w') as f:
         for href in hrefs:
             f.write(href + '\n')
     print('Load hrefs done')
@@ -110,8 +109,9 @@ for topic in topics:
             source = r.content
             soup = bs(source, 'lxml')
             p_tags = soup.find('div', class_='col-lg-12 col-md-12 col-sm-12').find_all('p')
-            pls_summaries = p_tags[0].get_text(strip=True)
-            pls_summaries = '\n'.join([p.get_text(strip=True) for p in p_tags])
+            # pls_summaries = p_tags[0].get_text(strip=True)
+            # [0:-2] to remove the last report informations: Author: xxx
+            pls_summaries = '\n'.join([p.get_text(strip=True) for p in p_tags[0:-2]])
             # may don't have the reference
             # if exception, don't extract pls_summaries
             reference = p_tags[-2].find('a')['href']
@@ -119,14 +119,17 @@ for topic in topics:
         except:
             continue
 
-        doi = reference.split('/')[-2] + '/' + reference.split('/')[-1]
-        abstract = tools.fromDOItoAbstract(doi)
+        reference = reference.split('/')[-2] + '/' + reference.split('/')[-1]
+        abstract = tools.fromDOItoAbstract(reference)
 
         # print(pls_summaries)
         # print(reference)
         # print(abstract)
         # if reference exist
-        if (reference != ''):
-            pass
+        if (reference != '' and pls_summaries != ''):
+            clean_abstract = tools.fromDOItoAbstract(reference)
+            # check if clean_abstract is empty
+            if clean_abstract != '':
+                tools.saveFile(topic, pls_summaries, reference, root_path, name, clean_abstract)
 
     driver.close()

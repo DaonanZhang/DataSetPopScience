@@ -26,46 +26,46 @@ root_path = '../../ParallelCorpus'
 name = 'NatureJP'
 
 folder_name = os.path.join(root_path, name)
+href_folder = os.path.join(folder_name, 'href')
 tools.make_dir(root_path, name)
-# hrefs = []
+hrefs = []
+
+# # debug
+# hrefs = ['https://www.natureasia.com/ja-jp/research/highlight/14759']
 
 main_page = f'https://www.natureasia.com/ja-jp/research'
 
+href_file_path = os.path.join(href_folder + f'hrefs.csv')
 
+r = requests.get(main_page)
+source = r.content
+soup = bs(source, 'lxml')
+h3_tags = soup.find_all('h3', class_='title')
 
-csv_file_path = os.path.join(root_path, name, name + f'hrefs.csv')
-
-# r = requests.get(main_page)
-# source = r.content
-# soup = bs(source, 'lxml')
-# h3_tags = soup.find_all('h3', class_='title')
-#
-# for h3_tag in h3_tags[0:-3]:
-#     a_tag = h3_tag.find('a')
-#     hrefs.append('https://www.natureasia.com' + a_tag['href'])
+for h3_tag in h3_tags[0:-3]:
+    a_tag = h3_tag.find('a')
+    hrefs.append('https://www.natureasia.com' + a_tag['href'])
 # load hrefs done
 
-# if not os.path.exists(csv_file_path):
-#     with open(csv_file_path, 'w', newline='') as csv_file:
-#         writer = csv.writer(csv_file)
-#         for row in hrefs:
-#             writer.writerow([row])
-# else:
-#     with open(csv_file_path, 'r') as f:
-#         hrefs = f.read().splitlines()
+if not os.path.exists(href_file_path):
+    with open(href_file_path, 'w', newline='') as csv_file:
+        writer = csv.writer(csv_file)
+        for row in hrefs:
+            writer.writerow([row])
+else:
+    with open(href_file_path, 'r') as f:
+        hrefs = f.read().splitlines()
 
 title = ''
-content = ''
+pls_summaries = ''
 reference = ''
-
-#
-# # debug
-hrefs = ['https://www.natureasia.com/ja-jp/research/highlight/14759']
 
 
 for index, href in enumerate(hrefs):
+    time.sleep(3)
 
-    r = requests.get(href)
+    hdr = {'User-Agent': 'Mozilla/5.0'}
+    r = requests.get(href, headers=hdr)
     source = r.content
     soup = bs(source, 'lxml')
 
@@ -76,9 +76,9 @@ for index, href in enumerate(hrefs):
         append = p_tag.get_text()
         if id == len(p_tags) - 2:
             append = append[0: -2]
-        content += append
+        pls_summaries += append
 
-    content = content.replace('Nature Japanとつながろう:', '')
+    pls_summaries = pls_summaries.replace('Nature Japanとつながろう:', '')
 
     title = soup.find('h1', class_='title').get_text()
 
@@ -86,16 +86,13 @@ for index, href in enumerate(hrefs):
 
     clean_abstract = tools.fromDOItoAbstract(doi)
 
-    # print(doi)
-    # print(content)
-    # print(clean_abstract)
-
     # check if clean_abstract is empty
-    if clean_abstract != '':
-        # No way for using similiarity
-        # similiarity = tools.similarity(content, clean_abstract, model)
-        fk_score, ari_score = tools.fk_ari_score(content)
-        print(f'fk_score: {fk_score}, ari_score: {ari_score}')
+    if (reference != '' and pls_summaries != ''):
+        clean_abstract = tools.fromDOItoAbstract(reference)
+        # check if clean_abstract is empty
+        if clean_abstract != '':
+            topic = 'generally'
+            tools.saveFile(topic, pls_summaries, reference, root_path, name, clean_abstract)
 
 
 
