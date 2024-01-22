@@ -2,17 +2,9 @@ import random
 
 import requests
 from bs4 import BeautifulSoup as bs
-from selenium.webdriver.support.wait import WebDriverWait
 from Scripts.utils import tools
-from selenium import webdriver
-from selenium.webdriver.common.keys import Keys
 import time
 import os
-import csv
-from selenium.webdriver.common.by import By
-from urllib.parse import urlparse
-import json
-import re
 
 # import fasttext
 # FASTTEXT_MODEL_PATH = 'F:\\Fasttext_models\\'
@@ -28,33 +20,31 @@ name = 'NatureJP'
 folder_name = os.path.join(root_path, name)
 href_folder = os.path.join(folder_name, 'href')
 tools.make_dir(root_path, name)
-hrefs = []
+# hrefs = []
 
 # # debug
-# hrefs = ['https://www.natureasia.com/ja-jp/research/highlight/14759']
-
+hrefs = ['https://www.natureasia.com/ja-jp/research/highlight/14769']
 main_page = f'https://www.natureasia.com/ja-jp/research'
-
 href_file_path = os.path.join(href_folder + f'hrefs.csv')
-
-r = requests.get(main_page)
-source = r.content
-soup = bs(source, 'lxml')
-h3_tags = soup.find_all('h3', class_='title')
-
-for h3_tag in h3_tags[0:-3]:
-    a_tag = h3_tag.find('a')
-    hrefs.append('https://www.natureasia.com' + a_tag['href'])
-# load hrefs done
-
-if not os.path.exists(href_file_path):
-    with open(href_file_path, 'w', newline='') as csv_file:
-        writer = csv.writer(csv_file)
-        for row in hrefs:
-            writer.writerow([row])
-else:
-    with open(href_file_path, 'r') as f:
-        hrefs = f.read().splitlines()
+#
+# r = requests.get(main_page)
+# source = r.content
+# soup = bs(source, 'lxml')
+# h3_tags = soup.find_all('h3', class_='title')
+#
+# for h3_tag in h3_tags[0:-3]:
+#     a_tag = h3_tag.find('a')
+#     hrefs.append('https://www.natureasia.com' + a_tag['href'])
+# # load hrefs done
+#
+# if not os.path.exists(href_file_path):
+#     with open(href_file_path, 'w', newline='') as csv_file:
+#         writer = csv.writer(csv_file)
+#         for row in hrefs:
+#             writer.writerow([row])
+# else:
+#     with open(href_file_path, 'r') as f:
+#         hrefs = f.read().splitlines()
 
 title = ''
 pls_summaries = ''
@@ -86,14 +76,15 @@ for index, href in enumerate(hrefs):
 
     clean_abstract = tools.fromDOItoAbstract(doi)
 
+    print(clean_abstract)
+    print(pls_summaries)
+
     # check if clean_abstract is empty
-    if (reference != '' and pls_summaries != ''):
-        clean_abstract = tools.fromDOItoAbstract(reference)
-        # check if clean_abstract is empty
-        if clean_abstract != '':
-            topic = 'generally'
-            tools.saveFile(topic, pls_summaries, reference, root_path, name, clean_abstract)
+    if clean_abstract and pls_summaries:
 
+        # debug
+        # simirality = tools.simirality(pls_summaries, clean_abstract)
+        # print(simirality)
 
-
-
+        topic = 'generally'
+        tools.saveFile(topic, pls_summaries, reference, root_path, name, clean_abstract)

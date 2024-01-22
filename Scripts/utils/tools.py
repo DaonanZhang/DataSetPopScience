@@ -4,8 +4,6 @@ from selenium.webdriver.common.keys import Keys
 from bs4 import BeautifulSoup
 from selenium import webdriver
 import time
-from openai import OpenAI
-import openai
 import requests
 import re
 from bs4 import BeautifulSoup as bs
@@ -49,23 +47,23 @@ def fk_ari_score(text):
 #     similarity = 1 - distance.cosine(embedding_en, embedding_exo)
 #     return similarity
 
-def gpt_power():
-    # openai.api_key = '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'
-
-    openai.api_key = os.getenv("OPENAI_API_KEY")
-
-    client = OpenAI()
-
-    completion = client.chat.completions.create(
-        model="gpt-3.5-turbo",
-        messages=[
-            {"role": "system",
-             "content": "You are a poetic assistant, skilled in explaining complex programming concepts with creative flair."},
-            {"role": "user", "content": "Compose a poem that explains the concept of recursion in programming."}
-        ]
-    )
-
-    print(completion.choices[0].message)
+# def gpt_power():
+#     # openai.api_key = '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'
+#
+#     openai.api_key = os.getenv("OPENAI_API_KEY")
+#
+#     client = OpenAI()
+#
+#     completion = client.chat.completions.create(
+#         model="gpt-3.5-turbo",
+#         messages=[
+#             {"role": "system",
+#              "content": "You are a poetic assistant, skilled in explaining complex programming concepts with creative flair."},
+#             {"role": "user", "content": "Compose a poem that explains the concept of recursion in programming."}
+#         ]
+#     )
+#
+#     print(completion.choices[0].message)
 
 def fromDOItoAbstract(doi):
     url = f"https://api.crossref.org/works/{doi}"
@@ -114,7 +112,7 @@ def natureAPI(doi, root_path, name):
 
 import csv
 
-def saveFile(topic, pls, reference, root_path, name, abstract):
+def saveFile(topic, pls, reference, root_path, name, scientific_text):
 
     try:
         fk_score, ari_score = fk_ari_score(pls)
@@ -122,8 +120,11 @@ def saveFile(topic, pls, reference, root_path, name, abstract):
         fk_score = 'None'
         ari_score = 'None'
 
-    column_names = ['pls',  'fk_score', 'ari_score', 'reference', 'abstract']
-    row = {'pls': pls, 'fk_score': fk_score, 'ari_score': ari_score, 'reference': reference, 'abstract': abstract}
+    column_names = ['pls',  'fk_score', 'ari_score', 'reference', 'abstract/full_text', 'simirality']
+    
+    simirality_score = simirality(pls, scientific_text)
+
+    row = {'pls': pls, 'fk_score': fk_score, 'ari_score': ari_score, 'reference': reference, 'abstract/full_text': scientific_text, 'simirality': simirality_score}
 
     name = os.path.join(name, 'store')
     make_dir(root_path, name)
@@ -142,3 +143,12 @@ def saveFile(topic, pls, reference, root_path, name, abstract):
             writer.writeheader()
         writer.writerow(row)
         print('done')
+
+from sentence_transformers import SentenceTransformer
+def simirality(pls, scientific):
+    model = SentenceTransformer('sentence-transformers/LaBSE')
+    pls_encode = model.encode(pls)
+    scientific_encode = model.encode(scientific)
+    simirality = np.matmul(pls_encode, np.transpose(scientific_encode))
+    return simirality
+
