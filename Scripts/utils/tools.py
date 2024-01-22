@@ -121,7 +121,7 @@ def saveFile(topic, pls, reference, root_path, name, scientific_text):
         ari_score = 'None'
 
     column_names = ['pls',  'fk_score', 'ari_score', 'reference', 'abstract/full_text', 'simirality']
-    
+
     simirality_score = simirality(pls, scientific_text)
 
     row = {'pls': pls, 'fk_score': fk_score, 'ari_score': ari_score, 'reference': reference, 'abstract/full_text': scientific_text, 'simirality': simirality_score}

@@ -69,6 +69,7 @@ for topic in topics:
 
     # load how many times more
     # each time load 5 articles: estimation
+    # TODO: no more contents after 10 times load more
     for i in range(100):
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight - 1500);")
         driver.find_element(By.ID,'load_more_stories').click()
