@@ -1,3 +1,4 @@
+import json
 import os
 import csv
 from selenium.webdriver.common.keys import Keys
@@ -14,7 +15,7 @@ import numpy as np
 from readability import Readability
 import fasttext
 # FASTTEXT_MODEL_PATH = 'F:\\Fasttext_models\\'
-
+ARXIV_DB_FILE_PATH = "../data/arXive_files/"  # Use relative path
 
 
 def make_dir(root_path, name):
@@ -80,6 +81,53 @@ def fromDOItoAbstract(doi):
     abstract_combined = ' '.join([tag.get_text() for tag in abstract_text])
     clean_abstract = re.sub(r'\s+', ' ', abstract_combined).strip()
     return clean_abstract
+
+def fromDOIUrltoDOWId(doi_url: str) -> str | None:
+    # Example: doi_url="https://doi.org/10.48550/arXiv.2105.05862"
+    pattern = r"arXiv\.(\d+\.\d+)"
+    match = re.search(pattern, doi_url)
+
+    if match:
+        arxiv_number = match.group(1)
+        return arxiv_number
+    else:
+        return None
+
+
+def fromDOItoFullTextArxiv(doi: str) -> str| None:
+    # Example DOI: doi= "https://doi.org/10.48550/arXiv.2105.05862"
+    arxiv_number = fromDOIUrltoDOWId(doi)
+    if arxiv_number is None:
+        return
+
+    folder_prefix = arxiv_number[:2]
+    folder_path = os.path.join(ARXIV_DB_FILE_PATH, folder_prefix)
+
+    if not os.path.exists(folder_path):
+        print(f"Folder {folder_path} does not exist.")
+        return None
+
+    raw_text = []
+    for filename in os.listdir(folder_path):
+        if filename.startswith(f"arXiv_src_{arxiv_number[:4]}"):
+            file_path = os.path.join(folder_path, filename)
+            with open(file_path, "r", encoding="utf-8") as file:
+                for line in file:
+                    data = json.loads(line)
+                    paper_id = data.get("paper_id")
+                    if paper_id and paper_id == arxiv_number:
+                        data = json.loads(line)
+                        body_text_entries = data.get("body_text", [])
+                        for entry in body_text_entries:
+                            text = entry.get("text", "")
+                            raw_text.append(text)
+    if raw_text:
+        text = "\n".join(raw_text)
+        text = re.sub(r"\{\{.*?\}\}", "", text)  # remove inline references
+        return text
+    else:
+        print(f"No body_text found for ID {arxiv_number}.")
+        return None
 
 def elsvierAPI(doi, root_path, name):
     url = f"https://api.elsevier.com/content/article/doi/{doi}"
