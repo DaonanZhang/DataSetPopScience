@@ -1,21 +1,13 @@
 import os
 import csv
-from selenium.webdriver.common.keys import Keys
-from bs4 import BeautifulSoup
-from selenium import webdriver
-import time
 import requests
 import re
 from bs4 import BeautifulSoup as bs
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
 
 from readability import Readability
-import fasttext
-# FASTTEXT_MODEL_PATH = 'F:\\Fasttext_models\\'
 
-
+ARXIV_DB_FILE_PATH = "../data/arXive_files/"
 
 def make_dir(root_path, name):
     # Ensure the root path exists
@@ -27,27 +19,7 @@ def fk_ari_score(text):
     r = Readability(text)
     return r.flesch_kincaid(), r.ari()
 
-# def doc_to_vec(doc, model):
-#     words = doc.split()
-#     word_vecs = [model.get_word_vector(word) for word in words]
-#     doc_vec = np.mean(word_vecs, axis=0)
-#     return doc_vec
-# def similarity(pls, scientific, exo_lang_model, en_lang_model):
-#
-#     vectorExo = doc_to_vec(pls, exo_lang_model)
-#     vectorEn = doc_to_vec(scientific, en_lang_model)
-#     similarity = cosine_similarity([vectorExo], [vectorEn])[0][0]
-#     return similarity
-
-# from sentence_transformers import SentenceTransformer
-# from scipy.spatial import distance
-# def similarity(pls, scientific, model):
-#     embedding_exo = model.encode(pls)
-#     embedding_en = model.encode(scientific)
-#     similarity = 1 - distance.cosine(embedding_en, embedding_exo)
-#     return similarity
-
-# def gpt_power():
+# def gpt_api():
 #     # openai.api_key = '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'
 #
 #     openai.api_key = os.getenv("OPENAI_API_KEY")
@@ -74,41 +46,69 @@ def fromDOItoAbstract(doi):
 
     data = response.json()
     rest_api = data.get('message', 'None')
+
     xml_abstract = rest_api.get('abstract', 'None')
     soup = bs(xml_abstract, 'lxml')
     abstract_text = soup.find_all('jats:p')
     abstract_combined = ' '.join([tag.get_text() for tag in abstract_text])
     clean_abstract = re.sub(r'\s+', ' ', abstract_combined).strip()
+
+
     return clean_abstract
 
-def elsvierAPI(doi, root_path, name):
+import html
+def fromDOItoAuthorINFO(doi):
+    url = f"https://api.crossref.org/works/{doi}"
+    response = requests.get(url)
+    if response.status_code != 200:
+        return ''
+    data = response.json()
+    rest_api = data.get('message', 'None')
+    author_data = rest_api.get('author', 'None')
+
+    authors_info = []
+    for author in author_data:
+        full_name = f"{author['given']} {author['family']}"
+        affiliations = [aff['name'] for aff in author.get('affiliation', [])]
+        author_info = f"{full_name}: {', '.join(affiliations)}"
+        authors_info.append(author_info)
+
+    journey = rest_api.get('container-title', 'None')
+    journey = html.unescape(journey[0])
+
+    return authors_info, journey
+
+
+def elsvierAPI(doi):
+    # usage guidance: https://dev.elsevier.com/documentation/ArticleRetrievalAPI.wadl
+
     url = f"https://api.elsevier.com/content/article/doi/{doi}"
+
     headers = {
+        'Accept': 'application/json',
         'X-ELS-APIKey': '3c1170ac03acc7ecaa1e01d9dc1e7107',
-        'Accept': 'application/pdf'
     }
-    response = requests.get(url, headers = headers)
-    filepath = os.path.join(root_path, name + '.pdf')
-    with open(filepath, 'wb') as f:
-        f.write(response.content)
-#
+    para = { 'view': 'FULL'}
+    response = requests.get(url, headers = headers, params=para)
 
-def natureAPI(doi, root_path, name):
-    # meta data only
-    # key = '31dd7b779e94b92c8fa42d9314a06dfa'
-    # url = f'http://api.springernature.com/meta/v2/jats?q=doi:{doi}&api_key={key}'
+    if response.status_code != 200:
+        print('cant find')
+        return ''
 
-    url = f'https://link.springer.com/{doi}.pdf'
-    response = requests.get(url, stream=True)
+    json_data = response.json()
+    print(json_data)
 
-    # Replace invalid characters in the filename
-    filepath = os.path.join(root_path, name + '.pdf')
+def natureAPI(doi):
 
-    if response.status_code == 200:
-        with open(filepath, 'wb') as file:
-            for index, chunk in enumerate(response.iter_content(chunk_size=1024000)):
-                print(index)
-                file.write(chunk)
+    key = '31dd7b779e94b92c8fa42d9314a06dfa'
+
+    url = f'http://api.springernature.com/openaccess/pam?q=doi:{doi}&api_key={key}'
+    response = requests.get(url)
+
+
+
+
+
 
 import csv
 
@@ -142,7 +142,6 @@ def saveFile(topic, pls, reference, root_path, name, scientific_text):
         if pls_mode == 'w':
             writer.writeheader()
         writer.writerow(row)
-        print('done')
 
 from sentence_transformers import SentenceTransformer
 def simirality(pls, scientific):
@@ -152,3 +151,49 @@ def simirality(pls, scientific):
     simirality = np.matmul(pls_encode, np.transpose(scientific_encode))
     return simirality
 
+def fromDOIUrltoDOWId(doi_url):
+    # Example: doi_url="https://doi.org/10.48550/arXiv.2105.05862"
+    pattern = r"arXiv\.(\d+\.\d+)"
+    match = re.search(pattern, doi_url)
+
+    if match:
+        arxiv_number = match.group(1)
+        return arxiv_number
+    else:
+        return None
+
+
+import json
+def fromDOItoFullTextArxiv(doi):
+    # Example DOI: doi= "https://doi.org/10.48550/arXiv.2105.05862"
+    arxiv_number = fromDOIUrltoDOWId(doi)
+    if arxiv_number is None:
+        return
+
+    folder_prefix = arxiv_number[:2]
+    folder_path = os.path.join(ARXIV_DB_FILE_PATH, folder_prefix)
+
+    if not os.path.exists(folder_path):
+        print(f"Folder {folder_path} does not exist.")
+        return None
+
+    raw_text = []
+    for filename in os.listdir(folder_path):
+        if filename.startswith(f"arXiv_src_{arxiv_number[:4]}"):
+            file_path = os.path.join(folder_path, filename)
+            with open(file_path, "r", encoding="utf-8") as file:
+                for line in file:
+                    data = json.loads(line)
+                    paper_id = data.get("paper_id")
+                    if paper_id and paper_id == arxiv_number:
+                        data = json.loads(line)
+                        body_text_entries = data.get("body_text", [])
+                        for entry in body_text_entries:
+                            text = entry.get("text", "")
+                            raw_text.append(text)
+    if raw_text:
+        text = "\n".join(raw_text)
+        text = re.sub(r"\{\{.*?\}\}", "", text)  # remove inline references
+        return text
+    else:
+        return None
