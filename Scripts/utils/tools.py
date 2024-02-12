@@ -79,7 +79,7 @@ def fromDOItoAuthorINFO(doi):
     return authors_info, journey
 
 
-def elsvierAPI(doi):
+def elsvierAPIDescription(doi: str) -> str | None:
     # usage guidance: https://dev.elsevier.com/documentation/ArticleRetrievalAPI.wadl
 
     url = f"https://api.elsevier.com/content/article/doi/{doi}"
@@ -88,16 +88,51 @@ def elsvierAPI(doi):
         'Accept': 'application/json',
         'X-ELS-APIKey': '3c1170ac03acc7ecaa1e01d9dc1e7107',
     }
-    para = { 'view': 'FULL'}
-    response = requests.get(url, headers = headers, params=para)
+    params = { 'view': 'FULL'}
+    response = requests.get(url, headers = headers, params=params)
 
-    if response.status_code != 200:
-        print('cant find')
-        return ''
+    if response.status_code == 200:
+        json_data = response.json()
+        try:
+            description = json_data['full-text-retrieval-response']['coredata']['dc:description']
+        except:
+            print("Description not found.")
+            description = None
+        return description
+    elif response.status_code == 404:
+        print("Article not found.")
+        return None
+    else:
+        print(f"Error {response.status_code}: Failed to retrieve article.")
+        return None
+    
+def elsvierAPIFullText(doi: str) -> str | None:
+    # usage guidance: https://dev.elsevier.com/documentation/ArticleRetrievalAPI.wadl
 
-    json_data = response.json()
-    print(json_data)
+    url = f"https://api.elsevier.com/content/article/doi/{doi}"
 
+    headers = {
+        'Accept': 'application/json',
+        'X-ELS-APIKey': '3c1170ac03acc7ecaa1e01d9dc1e7107',
+    }
+    params = { 'view': 'FULL'}
+    response = requests.get(url, headers = headers, params=params)
+
+    if response.status_code == 200:
+        json_data = response.json()
+        try:
+            full_text = json_data['full-text-retrieval-response']['originalText']
+        except:
+            print("Full Text not found.")
+            full_text = None
+        return full_text
+    elif response.status_code == 404:
+        print("Article not found.")
+        return None
+    else:
+        print(f"Error {response.status_code}: Failed to retrieve article.")
+        return None
+    
 def natureAPI(doi):
 
     key = '31dd7b779e94b92c8fa42d9314a06dfa'
