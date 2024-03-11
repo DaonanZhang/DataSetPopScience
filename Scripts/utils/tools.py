@@ -79,6 +79,60 @@ def fromDOItoAuthorINFO(doi):
     return authors_info, journey
 
 
+
+def elsvier_download_pdf(doi, root_path, name):
+
+    url = f"https://api.elsevier.com/content/article/doi/{doi}"
+    headers = {
+        'X-ELS-APIKey': '3c1170ac03acc7ecaa1e01d9dc1e7107',
+        'Accept': 'application/pdf'
+    }
+    response = requests.get(url, headers = headers)
+    filepath = os.path.join(root_path, name + '.pdf')
+    with open(filepath, 'wb') as f:
+        f.write(response.content)
+
+
+from serpapi import GoogleSearch
+
+def serpapi_search(query):
+    search = GoogleSearch({
+        "q": f"{query}",
+        "api_key": "90649428ff99886a5f712d25b8748394f2d057224df61ec35dadd5854d1bfa4b",
+        "engine": "google_scholar",
+    })
+    result = search.get_dict()
+
+    # print(result)
+
+    length = len(result['organic_results'])
+    for i in range(length):
+        row = (result['organic_results'][i]['link'])
+        if row.endswith('.pdf'):
+            return row
+    return None
+
+from tqdm import tqdm
+
+def download_pdf(url, foldername, filename):
+
+    filename = os.path.join(foldername, filename)
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
+    }
+
+    with requests.get(url, stream=True, headers=headers) as r:
+        r.raise_for_status()
+        total_size = int(r.headers.get('content-length', 0))
+
+        with tqdm(total=total_size, unit='B', unit_scale=True, desc=filename) as bar:
+            with open(filename, 'wb') as f:
+                for chunk in r.iter_content(chunk_size=8192):
+                    if chunk:
+                        f.write(chunk)
+                        bar.update(len(chunk))
+
+
 def elsvierAPI(doi):
     # usage guidance: https://dev.elsevier.com/documentation/ArticleRetrievalAPI.wadl
 
@@ -101,18 +155,14 @@ def elsvierAPI(doi):
 def natureAPI(doi):
 
     key = '31dd7b779e94b92c8fa42d9314a06dfa'
-
     url = f'http://api.springernature.com/openaccess/pam?q=doi:{doi}&api_key={key}'
     response = requests.get(url)
 
 
 
-
-
-
 import csv
 
-def saveFile(topic, pls, reference, root_path, name, scientific_text):
+def saveFile(topic, title, pls, article_full_text, reference, authors_info, journey, root_path, name, abstract, unique_id, pdf_exist):
 
     try:
         fk_score, ari_score = fk_ari_score(pls)
@@ -120,28 +170,36 @@ def saveFile(topic, pls, reference, root_path, name, scientific_text):
         fk_score = 'None'
         ari_score = 'None'
 
-    column_names = ['pls',  'fk_score', 'ari_score', 'reference', 'abstract/full_text', 'simirality']
+    column_names = ['topic', 'title', 'pls', 'article_full_text',  'fk_score', 'ari_score', 'reference', 'authors_info' , 'journey', 'abstract', 'simirality', 'id', 'pdf_exist']
 
-    simirality_score = simirality(pls, scientific_text)
+    simirality_score = simirality(pls, abstract)
 
-    row = {'pls': pls, 'fk_score': fk_score, 'ari_score': ari_score, 'reference': reference, 'abstract/full_text': scientific_text, 'simirality': simirality_score}
+    row = {'topic': topic, 'title':title, 'pls': pls, 'article_full_text': article_full_text, 'fk_score': fk_score, 'ari_score': ari_score,
+           'reference': reference, 'authors_info': authors_info, 'journey': journey,
+           'abstract': abstract, 'simirality': simirality_score, 'id': unique_id, 'pdf_exist': pdf_exist}
 
     name = os.path.join(name, 'store')
     make_dir(root_path, name)
 
-    pls_path = os.path.join(root_path, name, f'{topic}_pls.csv')
-    pls_extist = os.path.exists(pls_path)
+    store = os.path.join(root_path, name, f'{topic}_pls.csv')
+    store_extist = os.path.exists(store)
 
-    if pls_extist:
-        pls_mode = 'a'
+    if store_extist:
+        write_mode = 'a'
     else:
-        pls_mode = 'w'
+        write_mode = 'w'
 
-    with open(pls_path, pls_mode, newline='', encoding='utf-8') as f:
+    with open(store, write_mode, newline='', encoding='utf-8') as f:
         writer = csv.DictWriter(f, fieldnames=column_names)
-        if pls_mode == 'w':
+        if write_mode == 'w':
             writer.writeheader()
         writer.writerow(row)
+
+
+
+
+
+
 
 from sentence_transformers import SentenceTransformer
 def simirality(pls, scientific):

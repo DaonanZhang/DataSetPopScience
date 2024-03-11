@@ -12,8 +12,7 @@ name = 'ScienceNews'
 
 folder_name = os.path.join(root_path, name)
 
-# topics = ['life', 'earth', 'humans', 'space', 'tech']
-topics = ['life']
+topics = ['life', 'earth', 'humans', 'space', 'tech']
 hrefs = []
 
 for topic in topics:
@@ -27,10 +26,8 @@ for topic in topics:
         with open(folder_name + f'/hrefs_{topic}.csv', 'r') as f:
             hrefs = f.read().splitlines()
 
-    # different pages with url /page/x
-    page_num = 1
-    # while True:
-    for page_num in range(2):
+
+    for page_num in range(1,50):
         url = f'https://www.snexplores.org/topic/{topic}/page/{page_num}'
         r = requests.get(url)
         source = r.content
@@ -48,23 +45,25 @@ for topic in topics:
                 f.write(href + '\n')
         # go into the next page
         page_num += 1
+        try:
+            for url in hrefs:
+                response = requests.get(url)
+                response.encoding = response.apparent_encoding
+                soup = bs(response.text, 'lxml')
 
-        for url in hrefs:
-            response = requests.get(url)
-            response.encoding = response.apparent_encoding
-            soup = bs(response.text, 'lxml')
+                power_words_div = soup.find('div', class_='power-words-container')
 
-            power_words_div = soup.find('div', class_='power-words-container')
+                p_tags = power_words_div.find_all('p') if power_words_div else []
 
-            p_tags = power_words_div.find_all('p') if power_words_div else []
+                content = []
+                for p in p_tags:
+                    term = p.find('strong').get_text(strip=True)
+                    definition = p.get_text(strip=True).replace(term + ': ', '', 1)
+                    content.append((term, definition))
 
-            content = []
-            for p in p_tags:
-                term = p.find('strong').get_text(strip=True)
-                definition = p.get_text(strip=True).replace(term + ': ', '', 1)
-                content.append((term, definition))
-
-            with open(csv_file_path, mode='a', newline='', encoding='utf-8') as file:
-                writer = csv.writer(file)
-                for term, definition in content:
-                    writer.writerow([term, definition])
+                with open(csv_file_path, mode='a', newline='', encoding='utf-8') as file:
+                    writer = csv.writer(file)
+                    for term, definition in content:
+                        writer.writerow([term, definition])
+        except:
+            continue

@@ -46,14 +46,15 @@ driver.get("https://kids.frontiersin.org/articles")
 hrefs = []
 
 if not os.path.exists(folder_name + '/hrefs.csv'):
-    os.makedirs(folder_name + '/hrefs.csv')
+    with open(folder_name + '/hrefs.csv', 'w') as f:
+        pass
 else :
     with open(folder_name + '/hrefs.csv', 'r') as f:
         hrefs = f.read().splitlines()
 
 
 hrefs = []
-for i in range(1):
+for i in range(14):
     driver.execute_script(js)
     time.sleep(8)
 
@@ -63,15 +64,16 @@ for i in range(1):
     for link in links:
         if link.get('href') not in hrefs:
             hrefs.append(f'https://kids.frontiersin.org/{link.get("href")}')
-
+    print(f'load {i} page done')
 
 # after loading all the hrefs, save them to the hrefs.csv file
 with open(folder_name + '/hrefs.csv', 'a') as f:
     for href in hrefs:
         f.write(href + '\n')
 
+print('Load hrefs done')
 
-for url in hrefs:
+for index, url in enumerate(hrefs):
     response = requests.get(url)
     response.encoding = response.apparent_encoding
     soup = bs(response.text, 'lxml')
@@ -100,3 +102,5 @@ for url in hrefs:
         writer = csv.writer(file)
         for term, definition in content:
             writer.writerow([term, definition])
+
+    print(f'load content from {index}. article done')
