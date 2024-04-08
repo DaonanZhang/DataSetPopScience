@@ -1,0 +1,36 @@
+Analysis for Frontiers.csv:
+Total terms: 31348
+Avg. length of explanation: 21.96 words
+Avg. readability score: 57.39
+Avg. complexity ratio: 0.09
+
+Analysis for ScienceNewsearth.csv:
+Total terms: 82942
+Avg. length of explanation: 37.29 words
+Avg. readability score: 58.89
+Avg. complexity ratio: 0.05
+
+Analysis for ScienceNewshumans.csv:
+Total terms: 87133
+Avg. length of explanation: 37.26 words
+Avg. readability score: 58.91
+Avg. complexity ratio: 0.05
+
+Analysis for ScienceNewslife.csv:
+Total terms: 87818
+Avg. length of explanation: 37.43 words
+Avg. readability score: 59.13
+Avg. complexity ratio: 0.04
+
+Analysis for ScienceNewsspace.csv:
+Total terms: 87170
+Avg. length of explanation: 37.26 words
+Avg. readability score: 58.91
+Avg. complexity ratio: 0.05
+
+Analysis for ScienceNewstech.csv:
+Total terms: 87170
+Avg. length of explanation: 37.26 words
+Avg. readability score: 58.91
+Avg. complexity ratio: 0.05
+

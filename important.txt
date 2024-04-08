@@ -1,0 +1,7 @@
+For lexical data analysis:
+
+create a folder named data, then paste the csv to analyse.
+
+for parallel data analysis:
+
+create a folder name data_parallel, then paste the csv to analyse

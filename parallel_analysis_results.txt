@@ -1,0 +1,170 @@
+File: astronomy-physics_pls.csv
+Count: 54
+Unique terms: 2799
+Total terms: 48011
+Avg. article abstract length: 143.33333333333334
+Avg. article full-text length: 745.7592592592592
+Avg. similarity score: 0.6338897837037036
+Avg. FK score: 0.0
+Avg. ARI score: 0.0
+
+File: Chemical_pls.csv
+Count: 214
+Unique terms: 7717
+Total terms: 33974
+Avg. article abstract length: 144.13084112149534
+Avg. article full-text length: 14.626168224299066
+Avg. similarity score: 0.5209852734392524
+Avg. FK score: 0.0
+Avg. ARI score: 0.0
+
+File: earth-environment_pls.csv
+Count: 137
+Unique terms: 7337
+Total terms: 115479
+Avg. article abstract length: 194.13868613138686
+Avg. article full-text length: 648.7737226277372
+Avg. similarity score: 0.5983203855620439
+Avg. FK score: 0.0
+Avg. ARI score: 0.0
+
+File: Earth_science_pls.csv
+Count: 406
+Unique terms: 13870
+Total terms: 81476
+Avg. article abstract length: 190.5591133004926
+Avg. article full-text length: 10.120689655172415
+Avg. similarity score: 0.47008612604187194
+Avg. FK score: 0.0
+Avg. ARI score: 0.0
+
+File: Enviro_pls.csv
+Count: 4527
+Unique terms: 66880
+Total terms: 3901038
+Avg. article abstract length: 192.3079301965982
+Avg. article full-text length: 669.4190413077093
+Avg. similarity score: 0.545230316299978
+Avg. FK score: 0.42731012406567503
+Avg. ARI score: 0.462692500687517
+
+File: generally_pls.csv
+Count: 1655
+Unique terms: 39399
+Total terms: 9638808
+Avg. article abstract length: 166.01993957703928
+Avg. article full-text length: 5658.033232628399
+Avg. similarity score: 0.4553057857160121
+Avg. FK score: 2061.196927268552
+Avg. ARI score: 2740.677484899693
+
+File: health-medicine_pls.csv
+Count: 103
+Unique terms: 5908
+Total terms: 86279
+Avg. article abstract length: 176.6601941747573
+Avg. article full-text length: 661.0
+Avg. similarity score: 0.6096954884466019
+Avg. FK score: 0.0
+Avg. ARI score: 0.0
+
+File: Health_pls.csv
+Count: 5628
+Unique terms: 89045
+Total terms: 4698395
+Avg. article abstract length: 217.4269722814499
+Avg. article full-text length: 617.3980099502487
+Avg. similarity score: 0.5259522675104833
+Avg. FK score: 0.2502645138592682
+Avg. ARI score: 0.2781881274838662
+
+File: history-archaeology_pls.csv
+Count: 51
+Unique terms: 3574
+Total terms: 42041
+Avg. article abstract length: 181.27450980392157
+Avg. article full-text length: 643.0588235294117
+Avg. similarity score: 0.6393997970588237
+Avg. FK score: 0.0
+Avg. ARI score: 0.0
+
+File: Industry_pls.csv
+Count: 368
+Unique terms: 12070
+Total terms: 61043
+Avg. article abstract length: 152.84782608695653
+Avg. article full-text length: 13.029891304347826
+Avg. similarity score: 0.47483486913396733
+Avg. FK score: 0.0
+Avg. ARI score: 0.0
+
+File: Information_science_pls.csv
+Count: 373
+Unique terms: 13295
+Total terms: 71730
+Avg. article abstract length: 172.04289544235925
+Avg. article full-text length: 20.262734584450403
+Avg. similarity score: 0.4610679550567024
+Avg. FK score: 0.0
+Avg. ARI score: 0.0
+
+File: Life_science_pls.csv
+Count: 369
+Unique terms: 15385
+Total terms: 77940
+Avg. article abstract length: 199.9539295392954
+Avg. article full-text length: 11.265582655826558
+Avg. similarity score: 0.4793892244742547
+Avg. FK score: 0.0
+Avg. ARI score: 0.0
+
+File: Mathematics_pls.csv
+Count: 227
+Unique terms: 8711
+Total terms: 37298
+Avg. article abstract length: 153.37444933920705
+Avg. article full-text length: 10.933920704845814
+Avg. similarity score: 0.4805887992863436
+Avg. FK score: 0.0
+Avg. ARI score: 0.0
+
+File: Medical_pls.csv
+Count: 361
+Unique terms: 16465
+Total terms: 81469
+Avg. article abstract length: 214.2853185595568
+Avg. article full-text length: 11.390581717451523
+Avg. similarity score: 0.4813270912437673
+Avg. FK score: 0.0
+Avg. ARI score: 0.0
+
+File: society-psychology_pls.csv
+Count: 109
+Unique terms: 5548
+Total terms: 88755
+Avg. article abstract length: 172.6422018348624
+Avg. article full-text length: 641.6238532110092
+Avg. similarity score: 0.6025403797247706
+Avg. FK score: 0.0
+Avg. ARI score: 0.0
+
+File: technology-digital_pls.csv
+Count: 43
+Unique terms: 2637
+Total terms: 35307
+Avg. article abstract length: 148.06976744186048
+Avg. article full-text length: 673.0232558139535
+Avg. similarity score: 0.5520160495813954
+Avg. FK score: 0.0
+Avg. ARI score: 0.0
+
+File: Tech_pls.csv
+Count: 3457
+Unique terms: 47925
+Total terms: 2726788
+Avg. article abstract length: 155.02748047439977
+Avg. article full-text length: 633.7454440266126
+Avg. similarity score: 0.5255593614836563
+Avg. FK score: 0.26723006447739933
+Avg. ARI score: 0.29190793278756055
+
